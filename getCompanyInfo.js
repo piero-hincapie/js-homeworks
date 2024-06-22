@@ -24,7 +24,7 @@ const company = {
             partners: [
               {
                 name: 'Клієнт 1.2.3',
-                type: 'subSubCompany',
+                type: 'subSubSubCompany',
                 uses: 'Рішення для продажу квитків',
                 sells: 'Рішення для продажу квитків',
               }
@@ -64,5 +64,28 @@ function findValueByKey(obj, companyName) {
     return null;
 }
 
+function findByType(obj, companyType) {
+    if (obj.type === companyType) {
+        return obj
+    }
+    if (obj.clients) {
+        for (let client of obj.clients) {
+            let result = findByType(client, companyType);
+            if (result) {
+                return result
+            }
+        }
+    }
+    if (obj.partners) {
+        for (let partner of obj.partners) {
+            let result = findByType(partner, companyType);
+            if (result) {
+                return result
+            }
+        }
+    }
+    return null;
+}
+
 console.log(findValueByKey(company, "Велика Компанія"))
-  
+console.log(findByType(company, "subSubSubCompany"))
