@@ -1,0 +1,1779 @@
+{
+	"info": {
+		"_postman_id": "18147667-34a4-4655-9804-18884e151b9d",
+		"name": "QAuto API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18537352"
+	},
+	"item": [
+		{
+			"name": "Authorization",
+			"item": [
+				{
+					"name": "SignUp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//parsing body\r",
+									"const responseResult = pm.response.json();\r",
+									"\r",
+									"pm.environment.set(\"userId\", responseResult.data.userId)\r",
+									"\r",
+									"//validation schema\r",
+									"const schema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"properties\": {\r",
+									"        \"status\": { \"type\": \"string\", \"enum\": [\"ok\"] },\r",
+									"        \"data\": {\r",
+									"            \"type\": \"object\",\r",
+									"            \"properties\": {\r",
+									"                \"userId\": { \"type\": \"integer\" },\r",
+									"                \"photoFilename\": { \"type\": \"string\" },\r",
+									"                \"distanceUnits\": { \"type\": \"string\", \"enum\": [\"km\", \"mi\"] },\r",
+									"                \"currency\": { \"type\": \"string\", \"enum\": [\"usd\", \"eur\", \"uah\"] }\r",
+									"            },\r",
+									"            \"required\": [\"userId\", \"photoFilename\", \"distanceUnits\", \"currency\"]\r",
+									"        }\r",
+									"    },\r",
+									"    \"required\": [\"status\", \"data\"]\r",
+									"};\r",
+									"\r",
+									"// validating the response and throwing error if there is any\r",
+									"const validationResult = tv4.validateResult(responseResult, schema);\r",
+									"if (!validationResult.valid) {\r",
+									"    console.log(validationResult.errors);\r",
+									"    throw new Error(`Response does not match schema: ${validationResult.errors.map(error => `Path: ${error.dataPath}, Error: ${error.message}`).join('\\n')}`);\r",
+									"} else {\r",
+									"    console.log(\"Response body matches the schema\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// generating unique email with timestamp\r",
+									"const timestamp = Date.now();\r",
+									"const email = `yevhen+${timestamp}@test.qa`;\r",
+									"\r",
+									"// generating other variables here, so we can validate them before request\r",
+									"const name = pm.variables.replaceIn('{{$randomFirstName}}');\r",
+									"const lastName = pm.variables.replaceIn('{{$randomLastName}}');\r",
+									"const password = pm.variables.replaceIn('{{$randomPassword}}');\r",
+									"\r",
+									"// setting variables\r",
+									"pm.environment.set(\"userEmail\", email);\r",
+									"pm.environment.set(\"userName\", name);\r",
+									"pm.environment.set(\"userLastName\", lastName);\r",
+									"pm.environment.set(\"userPassword\", password);\r",
+									"\r",
+									"//the schema itself\r",
+									"const schema = {\r",
+									"    \"title\": \"Schema validator for creating a user of Hillel Garage\",\r",
+									"    \"description\": \"Here you can read what fields are necessary and which type of data should they contain\",\r",
+									"    \"type\": \"object\",\r",
+									"    \"properties\": {\r",
+									"        \"name\": {\r",
+									"            \"type\": \"string\",\r",
+									"            \"description\": \"This is the name of the user\",\r",
+									"            \"pattern\": \"^[a-zA-ZА-ЩЬЮЯҐЄІЇи'-]+$\"\r",
+									"        },\r",
+									"        \"lastName\": {\r",
+									"            \"type\": \"string\",\r",
+									"            \"description\": \"This is the surname of the user\",\r",
+									"            \"pattern\": \"^[a-zA-ZА-ЩЬЮЯҐЄІЇи'-]+$\"\r",
+									"        },\r",
+									"        \"email\": {\r",
+									"            \"type\": \"string\",\r",
+									"            \"description\": \"This is the email of the user\",\r",
+									"            \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\"\r",
+									"        },\r",
+									"        \"password\": {\r",
+									"            \"type\": \"string\",\r",
+									"            \"description\": \"The user password\",\r",
+									"            \"minLength\": 8,\r",
+									"            \"maxLength\": 15,\r",
+									"            \"pattern\": \"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\\\d)[A-Za-z\\\\d]{8,15}$\"\r",
+									"        },\r",
+									"        \"repeatPassword\": {\r",
+									"            \"type\": \"string\",\r",
+									"            \"description\": \"This field must be the same as password\"\r",
+									"        }\r",
+									"    },\r",
+									"    \"required\": [\"name\", \"lastName\", \"email\", \"password\", \"repeatPassword\"],\r",
+									"    \"additionalProperties\": false,\r",
+									"    \"allOf\": [\r",
+									"        {\r",
+									"            \"properties\": {\r",
+									"                \"password\": {\r",
+									"                    \"type\": \"string\"\r",
+									"                },\r",
+									"                \"repeatPassword\": {\r",
+									"                    \"const\": { \"$data\": \"1/password\" }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    ]\r",
+									"};\r",
+									"\r",
+									"// creating request body\r",
+									"const body = {\r",
+									"    name: name,\r",
+									"    lastName: lastName,\r",
+									"    email: email,\r",
+									"    password: password,\r",
+									"    repeatPassword: password\r",
+									"};\r",
+									"\r",
+									"// saving body as string\r",
+									"pm.variables.set(\"requestBody\", JSON.stringify(body));\r",
+									"\r",
+									"// body validation\r",
+									"const result = tv4.validateMultiple(body, schema);\r",
+									"\r",
+									"if (!result.valid) {\r",
+									"    console.log(result.errors);\r",
+									"    throw new Error(`Body does not match schema: ${result.errors.map(error => `Path: ${error.dataPath}, Error: ${error.message}`).join('\\n')}`);\r",
+									"} else {\r",
+									"    console.log(\"Request body matches schema\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{userName}}\",\r\n  \"lastName\": \"{{userLastName}}\",\r\n  \"email\": \"{{userEmail}}\",\r\n  \"password\": \"{{userPassword}}\",\r\n  \"repeatPassword\": \"{{userPassword}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/signup",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{userEmail}}\",\r\n  \"password\": \"{{userPassword}}\",\r\n  \"remember\": \"false\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/signin",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{userEmail}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/resetPassword",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"resetPassword"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/logout",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get Current Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/current",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"current"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/profile",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit User Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Отримання тіла відповіді\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"// Очікувані значення зі змінних середовища Postman\r",
+									"const expectedPhotoFilename = pm.environment.get(\"photoFilename\");\r",
+									"const expectedName = pm.environment.get(\"userName\");\r",
+									"const expectedLastName = pm.environment.get(\"userLastName\");\r",
+									"const expectedDateOfBirth = pm.environment.get(\"dateBirth\");\r",
+									"const expectedCountry = pm.environment.get(\"country\");\r",
+									"\r",
+									"// Порівняння отриманих даних з очікуваними значеннями\r",
+									"pm.test(\"Verify response body matches expected data\", function() {\r",
+									"    pm.expect(response.data.userId).to.be.a('number');\r",
+									"    pm.expect(response.data.photoFilename).to.equal(expectedPhotoFilename);\r",
+									"    pm.expect(response.data.name).to.equal(expectedName);\r",
+									"    pm.expect(response.data.lastName).to.equal(expectedLastName);\r",
+									"    pm.expect(response.data.dateBirth).to.equal(expectedDateOfBirth);\r",
+									"    pm.expect(response.data.country).to.equal(expectedCountry);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"\r",
+									"// generating other variables here, so we can validate them before request\r",
+									"const name = pm.variables.replaceIn('{{$randomFirstName}}');\r",
+									"const lastName = pm.variables.replaceIn('{{$randomLastName}}');\r",
+									"const country = pm.variables.replaceIn('{{$randomCountry}}');\r",
+									"const photoFilename = pm.variables.replaceIn('{{$randomColor}}.png');\r",
+									"const dateBirth = pm.variables.replaceIn('{{$randomDatePast}}');\r",
+									"\r",
+									"// setting variables\r",
+									"pm.environment.set(\"userName\", name);\r",
+									"pm.environment.set(\"userLastName\", lastName);\r",
+									"pm.environment.set(\"country\", country);\r",
+									"pm.environment.set(\"photoFilename\", photoFilename);\r",
+									"pm.environment.set(\"dateBirth\", dateBirth)\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"photo\": \"{{photoFilename}}\",\r\n  \"name\": \"{{userName}}\",\r\n  \"lastName\": \"{{userLastName}}\",\r\n  \"dateBirth\": \"{{dateBirth}}\",\r\n  \"country\": \"{{country}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/profile",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/settings",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit User Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"currency\": \"eur\", //погано, що чутливо до регістру і що нема списку доступних валют\r\n  \"distanceUnits\": \"km\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/settings",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send New Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/resetPassword/:userId/:token",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"resetPassword",
+								":userId",
+								":token"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": ""
+								},
+								{
+									"key": "token",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Email",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let userEmail = pm.variables.replaceIn(\"{{$randomEmail}}\");\r",
+									"pm.environment.set(\"userEmail\", userEmail);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{userEmail}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/email",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let newPassword = pm.variables.replaceIn(\"{{$randomPassword}}\");\r",
+									"pm.environment.set(\"newPassword\", newPassword);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const newPassword = pm.environment.get(\"newPassword\");\r",
+									"pm.environment.set(\"userPassword\", newPassword);\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const expectedUserId = pm.environment.get(\"userId\");\r",
+									"\r",
+									"pm.test(\"Verify userId in response body\", function() {\r",
+									"    pm.expect(response).to.have.property('data');\r",
+									"    if(response.data){\r",
+									"        pm.expect(response.data.userId).to.equal(parseInt(expectedUserId));\r",
+									"    } else {\r",
+									"        pm.expect(response).to.not.be.undefined;\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"oldPassword\": \"{{userPassword}}\",\r\n  \"password\": \"{{newPassword}}\",\r\n  \"repeatPassword\": \"{{newPassword}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/password",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();\r",
+									"pm.test(\"Status is OK\", function() {\r",
+									"    pm.expect(response.status).to.equal(\"ok\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/users/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cars",
+			"item": [
+				{
+					"name": "Get Car Brands",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/brands",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								"brands"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Car Brand by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/brands/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								"brands",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Car Models",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/models",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								"models"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Car Models by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/models/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								"models",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "8"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All User Cars",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add a Car to User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();\r",
+									"pm.environment.set(\"carId\", response.data.id)\r",
+									"\r",
+									"\r",
+									"const expectedUserId = pm.environment.get(\"userId\");\r",
+									"\r",
+									"pm.test(\"Status is OK\", function() {\r",
+									"    pm.expect(response.status).to.equal(\"ok\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"carBrandId\": 3,\r\n  \"carModelId\": 15,\r\n  \"mileage\": 122234\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Car by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "174095"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit existing car",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"carBrandId\": 3,\r\n  \"carModelId\": 11,\r\n  \"mileage\": 168223\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "174095"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Existing Car",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cars/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cars",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "174095"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Expenses",
+			"item": [
+				{
+					"name": "Create an Expense",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();\r",
+									"pm.test(\"Status is OK\", function() {\r",
+									"    pm.expect(response.status).to.equal(\"ok\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Get the current date in ISO format and trim to get YYYY-MM-DD\r",
+									"let currentDate = new Date().toISOString().slice(0, 10);\r",
+									"pm.environment.set(\"currentDate\", currentDate);\r",
+									"\r",
+									"//MILEAGE\r",
+									"//Function to generate a random int, getting a current mileage in INT format, generating random int, adding it to the mileage, saving new mileage\r",
+									"function getRandomInt(min, max) {\r",
+									"    return Math.floor(Math.random() * (max - min + 1)) + min;\r",
+									"}\r",
+									"\r",
+									"let mileage = parseInt(pm.environment.get(\"mileage\"), 10);\r",
+									"let randomMileage = getRandomInt(100, 1000);\r",
+									"let newMileage = mileage + randomMileage;\r",
+									"pm.environment.set(\"mileage\", newMileage);\r",
+									"\r",
+									"//LITERS\r",
+									"let liters = parseInt(pm.environment.get(\"liters\"), 10);\r",
+									"let randomLiters = getRandomInt(1, 50);\r",
+									"let newLiters = liters + randomLiters;\r",
+									"pm.environment.set(\"liters\", newLiters);\r",
+									"\r",
+									"//TOTALCOST\r",
+									"let updatedLiters = parseFloat(pm.environment.get(\"liters\", 10));\r",
+									"let price = 2.36\r",
+									"let totalCost = updatedLiters * price;\r",
+									"pm.environment.set(\"totalCost\", totalCost.toFixed(2))\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"carId\": {{carId}},\r\n  \"reportedAt\": \"{{currentDate}}\",\r\n  \"mileage\": {{mileage}},\r\n  \"liters\": {{liters}},\r\n  \"totalCost\": {{totalCost}},\r\n  \"forceMileage\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/expenses/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"expenses",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Expenses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/expenses/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"expenses",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get an Expense by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/expenses/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"expenses",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit an Expense by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Get the current date in ISO format and trim to get YYYY-MM-DD\r",
+									"let currentDate = new Date().toISOString().slice(0, 10);\r",
+									"pm.environment.set(\"currentDate\", currentDate);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"carId\": 174082,\r\n  \"reportedAt\": \"{{currentDate}}\",\r\n  \"mileage\": 375,\r\n  \"liters\": 11,\r\n  \"totalCost\": 11,\r\n  \"forceMileage\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/expenses/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"expenses",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "36225"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an Expense by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Get the current date in ISO format and trim to get YYYY-MM-DD\r",
+									"let currentDate = new Date().toISOString().slice(0, 10);\r",
+									"pm.environment.set(\"currentDate\", currentDate);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"carId\": 174082,\r\n  \"reportedAt\": \"{{currentDate}}\",\r\n  \"mileage\": 375,\r\n  \"liters\": 11,\r\n  \"totalCost\": 11,\r\n  \"forceMileage\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/expenses/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"expenses",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "36225"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Instructions",
+			"item": [
+				{
+					"name": "Get All Instructions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/instructions",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"instructions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get One Instruction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/instructions/:id",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"instructions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
