@@ -1,0 +1,139 @@
+{
+	"info": {
+		"_postman_id": "6c333347-593f-412b-8e91-02e8ab7e451f",
+		"name": "QAuto API Copy 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18537352"
+	},
+	"item": [
+		{
+			"name": "Authorization",
+			"item": [
+				{
+					"name": "SignUp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const testData = JSON.parse(pm.collectionVariables.get(\"testData\"));\r",
+									"let testIteration = pm.collectionVariables.get(\"testIteration\");\r",
+									"\r",
+									"const currentTest = testData[testIteration === \"0\" ? testData.length - 1 : testIteration - 1];\r",
+									"\r",
+									"\r",
+									"\r",
+									"if (currentTest.expectedResult) {\r",
+									"    pm.test(\"user is created\", function () {\r",
+									"        pm.response.to.have.status(201);\r",
+									"    });\r",
+									"} else {\r",
+									"    pm.test(\"user was not created due to corrupted data\", function () {\r",
+									"        pm.response.to.have.status(400);\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//отримуємо тест дату\r",
+									"const testData = pm.collectionVariables.get(\"testData\");\r",
+									"//парсимо її в джейсон\r",
+									"const parsedTestData = JSON.parse(testData);\r",
+									"//задаємо ітерацію\r",
+									"let testIteration = pm.collectionVariables.get(\"testIteration\");\r",
+									"//отримуємо один об'єкт із масива\r",
+									"const currentTest = parsedTestData[testIteration];\r",
+									"\r",
+									"//передаємо дані з об'єкта в тіло запиту\r",
+									"pm.variables.set(\"userName\", currentTest.userName);\r",
+									"pm.variables.set(\"userLastName\", currentTest.userLastName);\r",
+									"pm.variables.set(\"userEmail\", currentTest.userEmail);\r",
+									"pm.variables.set(\"userPassword\", currentTest.userPassword);\r",
+									"pm.variables.set(\"repeatPassword\", currentTest.repeatPassword);\r",
+									"\r",
+									"//збільшуємо індекс ітерації\r",
+									"testIteration++;\r",
+									"\r",
+									"//якщо ітерація менше, ніж довжина тестового масиву, то оновлюємо її значення. Інакше - скидаємо до нуля\r",
+									"if (testIteration < parsedTestData.length) {\r",
+									"    pm.collectionVariables.set (\"testIteration\", testIteration);\r",
+									"} \r",
+									"else {\r",
+									"    pm.collectionVariables.set(\"testIteration\", 0)\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{userName}}\",\r\n  \"lastName\": \"{{userLastName}}\",\r\n  \"email\": \"{{userEmail}}\",\r\n  \"password\": \"{{userPassword}}\",\r\n  \"repeatPassword\": \"{{repeatPassword}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/signup",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "testData",
+			"value": "[\n    {\"userName\": \"\", \"userLastName\": \"Skrtel\", \"userEmail\": \"martin.skrtel@slvk.org\", \"userPassword\": \"Wq1234567890qWR\", \"repeatPassword\": \"Wq1234567890qWR\", \"expectedResult\": false, \"reason\": \"no name\"},\n    {\"userName\": \"Martin\", \"userLastName\": \"Skrtel\", \"userEmail\": \"martin.skrtel@slvk.org\", \"userPassword\": \"Wq1234567890qWR\", \"repeatPassword\": \"Wq1234567890qWR\", \"expectedResult\": false, \"reason\": \"wrong email\"},\n    {\"userName\": \"Martin\", \"userLastName\": \"Skrtel\", \"userEmail\": \"martin.skrtel@slvk.org\", \"userPassword\": \"Wq1234567890qWR\", \"repeatPassword\": \"Wq1234567890\", \"expectedResult\": false, \"reason\": \"passwords don't match\"},\n    {\"userName\": \"Martin\", \"userLastName\": \"Skrtel\", \"userEmail\": \"martin.skrtel@slvk.org\", \"userPassword\": \"Wq1234567890qWR\", \"repeatPassword\": \"Wq1234567890qWR\", \"expectedResult\": true, \"reason\": \"data is valid\"},\n    {\"userName\": \"Martin\", \"userLastName\": \"Skrtel\", \"userEmail\": \"martin.skrtel@slvk.org\", \"userPassword\": \"Wq1234567890qWR\", \"repeatPassword\": \"Wq1234567890qWR\", \"expectedResult\": false, \"reason\": \"user already exists\"}\n]",
+			"type": "string"
+		},
+		{
+			"key": "testIteration",
+			"value": "0",
+			"type": "string"
+		}
+	]
+}
