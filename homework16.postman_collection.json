@@ -1,0 +1,255 @@
+{
+	"info": {
+		"_postman_id": "9ce819cd-a8e8-49d3-a89c-30eeb3b82ca5",
+		"name": "homework15",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18537352"
+	},
+	"item": [
+		{
+			"name": "getAllCities",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//парсимо респонс в джейсон\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"//тут через мапінг (замість циклу фор) витягуємо всі айді міст, задаємо відповідну змінну. Потім з них обираємо чотири рандомних айді (функція нижче) і теж задаємо змінну\r",
+							"function processResponse(response) {\r",
+							"    const allCityIds = response.data.getAllCities.map(city => city.id);\r",
+							"    pm.collectionVariables.set(\"allCityIds\", JSON.stringify(allCityIds));\r",
+							"    \r",
+							"    const randomIds = getRandomIds(allCityIds, 4);\r",
+							"    pm.collectionVariables.set(\"randomIds\", JSON.stringify(randomIds));\r",
+							"\r",
+							"    // Отримуємо всі площі, знаходимо середню і зберігаємо її\r",
+							"    const areas = response.data.getAllCities.map(city => city.square);\r",
+							"    const totalArea = areas.reduce((acc, area) => acc + area, 0);\r",
+							"    const averageArea = totalArea / areas.length;\r",
+							"    pm.collectionVariables.set(\"averageArea\", averageArea);\r",
+							"\r",
+							"    return {\r",
+							"        allCityIds: allCityIds,\r",
+							"        randomIds: randomIds,\r",
+							"        averageArea: averageArea\r",
+							"    };\r",
+							"}\r",
+							"\r",
+							"//перетасовуємо масив, а потім зберігаємо елементи від 0 до заданого числа\r",
+							"function getRandomIds(array, num) {\r",
+							"    const shuffled = [...array].sort(() => 0.5 - Math.random());\r",
+							"    return shuffled.slice(0, num);\r",
+							"}\r",
+							"\r",
+							"const result = processResponse(response);\r",
+							"console.log(result.allCityIds);\r",
+							"console.log(result.randomIds);\r",
+							"console.log(result.averageArea);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query{\r\n  getAllCities{\r\n    id\r\n    name\r\n    square\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getDescription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query GetCitiesByIds($randomIds: [ID!]!) {\r\n  getCitiesByIds(in: $randomIds) {\r\n    ... on City {\r\n        description\r\n    }\r\n  }\r\n}\r\n",
+						"variables": "{\r\n  \"randomIds\": {{randomIds}}\r\n}\r\n"
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getCitiesFromRange",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Перетворюємо рядкове представлення randomIds у масив чисел\r",
+							"const randomIdsArray = JSON.parse(pm.collectionVariables.get(\"randomIds\"));\r",
+							"\r",
+							"// Знаходимо мінімальне та максимальне значення\r",
+							"const startRange = Math.min(...randomIdsArray);\r",
+							"const endRange = Math.max(...randomIdsArray);\r",
+							"\r",
+							"// Зберігаємо мінімальне та максимальне значення як числові змінні колекції (Int)\r",
+							"pm.collectionVariables.set(\"startRange\", parseInt(startRange));\r",
+							"pm.collectionVariables.set(\"endRange\", parseInt(endRange));\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query GetCitiesInRange($startRange: Int!, $endRange: Int!) {\r\n  getCityByRangeId(filter: { minId: $startRange, maxId: $endRange }) {\r\n    id\r\n    name\r\n    square\r\n  }\r\n}\r\n",
+						"variables": "{\r\n  \"startRange\": {{startRange}},\r\n  \"endRange\": {{endRange}}\r\n}\r\n"
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createNewCity",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation CreateCity($randomName: String!, $newCityArea: Float!, $newCityDescription : String!) {\r\n  addCity(name: $randomName, square: $newCityArea, description: $newCityDescription) {\r\n    id\r\n    name\r\n    square\r\n    ... on City {\r\n      description\r\n    }\r\n  }\r\n}\r\n",
+						"variables": "{\r\n  \"randomName\": \"{{$randomCity}}\",\r\n  \"newCityArea\": {{averageArea}},\r\n  \"newCityDescription\": \"{{$randomCatchPhrase}}\"\r\n}\r\n"
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "https://graphql-ukrainian-cities.hillel.it/graphql",
+			"type": "string"
+		},
+		{
+			"key": "allCityIds",
+			"value": ""
+		},
+		{
+			"key": "randomIds",
+			"value": ""
+		},
+		{
+			"key": "startRange",
+			"value": ""
+		},
+		{
+			"key": "endRange",
+			"value": ""
+		},
+		{
+			"key": "averageArea",
+			"value": ""
+		}
+	]
+}
