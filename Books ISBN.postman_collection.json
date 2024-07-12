@@ -1,0 +1,227 @@
+{
+	"info": {
+		"_postman_id": "84868977-4fc5-4ccc-9ac1-5beca2cbfb81",
+		"name": "Books ISBN",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18537352"
+	},
+	"item": [
+		{
+			"name": "Is Valid ISBN 13",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const xml2js = require('xml2js');\r",
+							"\r",
+							"function testResponseBody() {\r",
+							"    pm.test(\"Status code is 200\", function () {\r",
+							"        pm.response.to.have.status(200);\r",
+							"    });\r",
+							"\r",
+							"    pm.test(\"Response contains IsValidISBN13Result\", function () {\r",
+							"        pm.expect(pm.response.text()).to.include(\"IsValidISBN13Result\");\r",
+							"    });\r",
+							"\r",
+							"    var xml = pm.response.text();\r",
+							"    \r",
+							"    xml2js.parseString(xml, { tagNameProcessors: [xml2js.processors.stripPrefix] }, function (err, result) {\r",
+							"        if (err) {\r",
+							"            console.error(err);\r",
+							"            pm.test(\"Error parsing XML\", function () {\r",
+							"                pm.expect(err).to.be.null;\r",
+							"            });\r",
+							"        } else {\r",
+							"            var isValidISBN13Result = result.Envelope.Body[0].IsValidISBN13Response[0].IsValidISBN13Result[0];\r",
+							"\r",
+							"            pm.test(\"IsValidISBN13Result is true\", function () {\r",
+							"                pm.expect(isValidISBN13Result).to.equal(\"true\");\r",
+							"            });\r",
+							"\r",
+							"            pm.test(\"IsValidISBN13Result is not false\", function () {\r",
+							"                pm.expect(isValidISBN13Result).to.not.equal(\"false\");\r",
+							"            });\r",
+							"        }\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"testResponseBody();\r",
+							"\r",
+							"\r",
+							"function testResponseHeaders() {\r",
+							"    // Checking the value of Content-Type header\r",
+							"    pm.test(\"Content-Type is text/xml; charset=utf-8\", function () {\r",
+							"        pm.response.to.have.header(\"Content-Type\", \"text/xml; charset=utf-8\");\r",
+							"    });\r",
+							"\r",
+							"    // Checking the value of Content-Length header\r",
+							"    pm.test(\"Content-Length is correct\", function () {\r",
+							"        var contentLength = pm.response.headers.get(\"Content-Length\");\r",
+							"        pm.expect(parseInt(contentLength)).to.be.above(0);\r",
+							"    });\r",
+							"\r",
+							"    // Checking that response is less than 1 second\r",
+							"    pm.test(\"Response time is less than 1s\", function () {\r",
+							"        pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"testResponseHeaders();"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "text/xml; charset=utf-8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n  <soap:Body>\r\n    <IsValidISBN13 xmlns=\"http://webservices.daehosting.com/ISBN\">\r\n      <sISBN>978-1-4612-9090-2</sISBN>\r\n    </IsValidISBN13>\r\n  </soap:Body>\r\n</soap:Envelope>",
+					"options": {
+						"raw": {
+							"language": "xml"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://webservices.daehosting.com/services/isbnservice.wso",
+					"protocol": "http",
+					"host": [
+						"webservices",
+						"daehosting",
+						"com"
+					],
+					"path": [
+						"services",
+						"isbnservice.wso"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Is Valid ISBN 10",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const xml2js = require('xml2js');\r",
+							"\r",
+							"function testResponseBody() {\r",
+							"    pm.test(\"Status code is 200\", function () {\r",
+							"        pm.response.to.have.status(200);\r",
+							"    });\r",
+							"\r",
+							"    pm.test(\"Response contains IsValidISBN10Result\", function () {\r",
+							"        pm.expect(pm.response.text()).to.include(\"IsValidISBN10Result\");\r",
+							"    });\r",
+							"\r",
+							"    // converting XML to JSON to check the result xml2js\r",
+							"    var xml = pm.response.text();\r",
+							"    xml2js.parseString(xml, { tagNameProcessors: [xml2js.processors.stripPrefix] }, function (err, result) {\r",
+							"        if (err) {\r",
+							"            console.error(err);\r",
+							"            pm.test(\"Error parsing XML\", function () {\r",
+							"                pm.expect(err).to.be.null;\r",
+							"            });\r",
+							"        } else {\r",
+							"            var isValidISBN10Result = result.Envelope.Body[0].IsValidISBN10Response[0].IsValidISBN10Result[0];\r",
+							"\r",
+							"            //checking that the result is true\r",
+							"            pm.test(\"IsValidISBN10Result is true\", function () {\r",
+							"                pm.expect(isValidISBN10Result).to.equal(\"true\");\r",
+							"            });\r",
+							"\r",
+							"            //basically the same, checking that the result is not false\r",
+							"            pm.test(\"IsValidISBN10Result is not false\", function () {\r",
+							"                pm.expect(isValidISBN10Result).to.not.equal(\"false\");\r",
+							"            });\r",
+							"        }\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"testResponseBody();\r",
+							"\r",
+							"\r",
+							"\r",
+							"function testResponseHeaders() {\r",
+							"    // Checking the value of Content-Type header\r",
+							"    pm.test(\"Content-Type is text/xml; charset=utf-8\", function () {\r",
+							"        pm.response.to.have.header(\"Content-Type\", \"text/xml; charset=utf-8\");\r",
+							"    });\r",
+							"\r",
+							"    // Checking the value of Content-Length header\r",
+							"    pm.test(\"Content-Length is correct\", function () {\r",
+							"        var contentLength = pm.response.headers.get(\"Content-Length\");\r",
+							"        pm.expect(parseInt(contentLength)).to.be.above(0);\r",
+							"    });\r",
+							"\r",
+							"    // Checking that response is less than 1 second\r",
+							"    pm.test(\"Response time is less than 1s\", function () {\r",
+							"        pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"testResponseHeaders();"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "text/xml; charset=utf-8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n  <soap:Body>\r\n    <IsValidISBN10 xmlns=\"http://webservices.daehosting.com/ISBN\">\r\n      <sISBN>0-19-852663-6</sISBN>\r\n    </IsValidISBN10>\r\n  </soap:Body>\r\n</soap:Envelope>",
+					"options": {
+						"raw": {
+							"language": "xml"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://webservices.daehosting.com/services/isbnservice.wso",
+					"protocol": "http",
+					"host": [
+						"webservices",
+						"daehosting",
+						"com"
+					],
+					"path": [
+						"services",
+						"isbnservice.wso"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
